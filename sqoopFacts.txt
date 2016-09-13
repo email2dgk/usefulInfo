@@ -1,0 +1,5 @@
+--import-all-tables option does not support --target-dir
+
+--direct does not support --password so need to use --P
+
+--delete-target-dir does not support --password so need to use --P
