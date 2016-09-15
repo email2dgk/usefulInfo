@@ -1,0 +1,5 @@
+1 ) Use Map side join when one of the file or table is very less/fewer records when compare with others. 
+Use Broadcast Map in Spark. 
+
+2) 
+
