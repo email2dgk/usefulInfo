@@ -1,0 +1,6 @@
+1) Avoid Pattern Matching on Options. 
+
+Example: 
+
+
+2) 
