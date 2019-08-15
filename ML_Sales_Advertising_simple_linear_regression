@@ -1,0 +1,66 @@
+%spark
+import org.apache.spark.sql.types._
+import org.apache.spark.ml.feature.{StringIndexer, VectorAssembler}
+import org.apache.spark.ml.Pipeline
+import org.apache.spark.ml.evaluation.RegressionEvaluator
+import org.apache.spark.ml.feature.{StringIndexer, VectorAssembler}
+import org.apache.spark.ml.regression.GBTRegressor
+import org.apache.spark.sql.types._
+import org.apache.spark.sql.{Encoders, SparkSession}
+import org.apache.spark.ml.regression.LinearRegression
+
+val trainFile = "/Users/gdevaraj/Desktop/ML_Related/datasets/Salary_Data.csv"
+
+val testFile = "/Users/gdevaraj/Desktop/ML_Related/datasets/Salary_Data.csv"
+
+val salaryTrainSchema = { StructType(
+            StructField("YearsExperience", DoubleType) ::
+            StructField("Salary", DoubleType) :: Nil) }
+val salaryTrainDF = spark.read.format("csv").option("header",true).schema(salaryTrainSchema).load(trainFile)
+
+val salaryTestDF = spark.read.format("csv").option("header",true).schema(salaryTrainSchema).load(testFile)
+
+val Array(trainDF, testDF) = salaryTrainDF.randomSplit(Array(0.95,0.05))
+
+val labelCol="Salary"
+
+val assembler = new VectorAssembler().setInputCols(Array("YearsExperience")).setOutputCol("features").transform(trainDF)
+
+assembler.show(false)
+
+assembler.printSchema
+
+val lr = { new LinearRegression()
+.setLabelCol("Salary")
+.setFeaturesCol("features")
+.setPredictionCol("predicted_salary")
+.setMaxIter(50)
+.setRegParam(1)
+.setElasticNetParam(1)
+}
+
+val model  = lr.fit(assembler)
+
+val salaryPredictTrainDF  = model.transform(assembler)
+
+salaryPredictTrainDF.show(false)
+
+val assemblerTest = new VectorAssembler().setInputCols(Array("YearsExperience")).setOutputCol("features").transform(salaryTestDF)
+val salaryPredictTestDF = model.transform(assemblerTest)
+
+salaryPredictTestDF.show()
+
+val evaluator = new RegressionEvaluator()
+            .setLabelCol("Salary")
+            .setPredictionCol("predicted_salary")
+            .setMetricName("rmse")
+        //We compute the error using the evaluator
+        val error = evaluator.evaluate(salaryPredictTrainDF)
+        println(error)
+        
+                val error2 = evaluator.evaluate(salaryPredictTestDF)
+        println(error2)
+        
+        trainDF.describe().show()
+        
+        testDF.describe().show()
